@@ -18,7 +18,7 @@ The raw data had a fair number of problems that needed sorting out before any of
 
 **Duplicate rows.** After that first cleanup, about 26,000 rows turned out to be exact duplicates, same invoice, same item, same quantity, same price, same timestamp. These looked like export artifacts rather than real repeat purchases, and they were adding up to about £368,600 in inflated spend across the dataset. I dropped them.
 
-**Non-product line items.** A few stock codes in the data weren't actual products at all. Things like "POST" (postage), "M" (manual charges), "DOT" (Dotcom postage), "ADJUST" (account adjustments), and bank charges. One of these turned out to be a real problem: a customer had a manual charge of nearly £9,000 on one invoice, which was then fully reversed on the very next invoice as a cancellation. Because my filter dropped cancelled invoices but kept the original manual charge, that customer would have shown up with a phantom £9,000 "purchase" that never actually happened. I removed all of these non-product codes to avoid that kind of distortion.
+**Non-product line items.** A few stock codes in the data weren't actual products at all. Things like "POST" (postage), "M" (manual charges), "DOT" (Dotcom postage), "ADJUST" (account adjustments), and bank charges. One of these turned out to be a real problem: a customer had a manual charge of nearly £9,000 on one invoice, which was then fully reversed on the very next invoice as a cancellation. Because my filter dropped cancelled invoices but kept the original manual charge, that customer would have shown up with artificial £9,000 contribution to their monetary value that never actually happened. I removed all of these non-product codes to avoid that kind of distortion.
 
 After all of this, the dataset went from 5,942 raw customer IDs down to 5,852 customers with a genuine, cleaned purchase history to build RFM from.
 
@@ -34,7 +34,7 @@ For each of the 5,852 customers, I calculated:
 
 Before running K-Means, I checked whether these three features were skewed, since K-Means relies on distance calculations that get thrown off by long tails of extreme values.
 
-Recency came out only mildly skewed (0.89) and didn't need any transformation. Frequency and Monetary, on the other hand, were extremely skewed (12.03 and 25.33), which meant a small number of very high-frequency, very high-spending customers were stretching the whole distribution. I applied a log transform to both, which brought Monetary down to a healthy 0.27 and Frequency down to 1.00, a big improvement, even if Frequency still carries some skew naturally since it's count data with a hard floor at 1.
+Recency came out only mildly skewed (0.89) and didn't need any transformation. Frequency and Monetary, on the other hand, were extremely skewed (12.03 and 25.33), which meant a small number of very high-frequency, very high-spending customers were stretching the whole distribution. I applied a log transform to both, which brought Monetary down to 0.27 and Frequency down to 1.00, a big improvement, even if Frequency still carries some skew naturally since it's count data with a hard floor at 1.
 
 After that, I scaled all three features with StandardScaler, so that Recency's much larger raw numbers (ranging into the hundreds) didn't dominate the distance calculations just because of their size, rather than their actual importance.
 
@@ -42,7 +42,7 @@ After that, I scaled all three features with StandardScaler, so that Recency's m
 
 I ran K-Means across K values from 2 to 10 and checked two things: the elbow method (how much adding another cluster reduces inertia) and the silhouette score (how well separated and tight the clusters are).
 
-The elbow curve didn't have one single obvious bend, the slowdown in inertia reduction was gradual between K=4 and K=5 rather than a sharp corner. Because of that, I used the silhouette score as a tiebreaker, and it showed something worth noting: scores generally decline as K increases, but K=5 actually scored slightly higher than K=4 (0.365 versus 0.361), the only point in the whole curve where the trend reversed. Two independent signals pointing at the same spot was enough to settle on K=5.
+The elbow curve didn't have one single obvious bend, the slowdown in inertia reduction was gradual between K=4 and K=5 rather than a sharp corner. Because of that, I used the silhouette score as a tiebreaker, and it showed something worth noting: scores generally decline as K increases, but K=5 scored slightly higher than K=4 (0.365 versus 0.361), the only point in the whole curve where the trend reversed. K=5 was selected as a practical balance between cluster separation and business interpretability.
 
 ## What the five clusters look like
 
@@ -62,7 +62,7 @@ The elbow curve didn't have one single obvious bend, the slowdown in inertia red
 
 **Cluster 3, new customers.** Their median first purchase date was mid-2011, noticeably later than every other cluster, and I checked this directly rather than assuming it from the RFM numbers alone. They've made a purchase or two but haven't had the chance yet to become repeat buyers.
 
-**Cluster 4, dormant, most likely already churned.** These customers have been inactive for about 70% of the entire two-year window covered by the dataset, with very low frequency and spend even when they were active. The dataset doesn't have an actual churn label, so this is an inference based on how long they've been inactive relative to the observation window, not a confirmed fact, but it's a strong enough pattern to act on.
+**Cluster 4, dormant.** These customers have been inactive for about 70% of the entire two-year window covered by the dataset, with very low frequency and spend even when they were active. The dataset doesn't have an actual churn label, so this is an inference based on how long they've been inactive relative to the observation window, not a confirmed fact, but it's a strong enough pattern to act on.
 
 ## What I'd actually recommend doing with each group
 
