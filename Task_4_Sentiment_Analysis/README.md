@@ -18,8 +18,7 @@ This project sorts reviews of Nigerian banking apps into Negative, Neutral or Po
 10. [Possible application](#10-possible-application)
 11. [Next steps (not done)](#11-next-steps-not-done)
 12. [Conclusion](#12-conclusion)
-13. [Internship checklist](#13-internship-checklist)
-14. [Project structure and how to run it](#14-project-structure-and-how-to-run-it)
+13. [Project structure and how to run it](#14-project-structure-and-how-to-run-it)
 
 ## 1. Introduction
 
@@ -207,14 +206,7 @@ A bank's app or support team could use a model like this to sort new reviews, so
 The aim was to see whether review text alone can sort Nigerian banking app reviews into Negative, Neutral and Positive, and to compare two models fairly when the classes are uneven. Both models separate clearly positive from clearly negative reviews fairly well. Neither handles Neutral well. Logistic Regression has the higher macro F1, so it is the better of the two in this experiment, even though Naive Bayes has the higher accuracy. Much of the Neutral difficulty comes from how the labels were made, so any future work should start with better labels.
 
 
-## 14. Project structure and how to run it
-
-```
-Task_4_Sentiment_Analysis/
-    README.md
-    Sentiment_Analysis_of_Nigerian_Mobile_Banking_App_Reviews.ipynb
-    images/
-```
+## 13. How to run it
 
 To run it:
 
